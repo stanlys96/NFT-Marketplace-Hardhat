@@ -13,6 +13,8 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+// Compile again pls
+
 error NftMarketplace__PriceMustBeAboveZero();
 error NftMarketplace__NotApprovedForMarketplace();
 error NftMarketplace__PriceNotMet(
@@ -48,13 +50,15 @@ contract NftMarketplace is ReentrancyGuard {
         address indexed seller,
         address indexed nftAddress,
         uint256 indexed tokenId,
-        uint256 price
+        uint256 price,
+        string action
     );
 
     event ItemCanceled(
         address indexed seller,
         address indexed nftAddress,
-        uint256 indexed tokenId
+        uint256 indexed tokenId,
+        uint256 price
     );
 
     event ItemBought(
@@ -120,7 +124,13 @@ contract NftMarketplace is ReentrancyGuard {
         s_completeListing.push(
             CompleteListing(priceTemp, msg.sender, nftAddressTemp, tokenIdTemp)
         );
-        emit ItemListed(msg.sender, nftAddressTemp, tokenIdTemp, priceTemp);
+        emit ItemListed(
+            msg.sender,
+            nftAddressTemp,
+            tokenIdTemp,
+            priceTemp,
+            "list_item"
+        );
     }
 
     function cancelListing(address nftAddress, uint256 tokenId)
@@ -128,9 +138,10 @@ contract NftMarketplace is ReentrancyGuard {
         isListed(nftAddress, tokenId, true)
         isOwner(nftAddress, tokenId, msg.sender, true)
     {
+        uint256 price = s_listings[nftAddress][tokenId].price;
         delete s_listings[nftAddress][tokenId];
         removeCompleteListing(nftAddress, tokenId);
-        emit ItemCanceled(msg.sender, nftAddress, tokenId);
+        emit ItemCanceled(msg.sender, nftAddress, tokenId, price);
     }
 
     function buyItem(address nftAddress, uint256 tokenId)
@@ -174,7 +185,13 @@ contract NftMarketplace is ReentrancyGuard {
         }
         s_listings[nftAddress][tokenId].price = newPrice;
         updateCompleteListing(nftAddress, tokenId, newPrice);
-        emit ItemListed(msg.sender, nftAddress, tokenId, newPrice);
+        emit ItemListed(
+            msg.sender,
+            nftAddress,
+            tokenId,
+            newPrice,
+            "update_price"
+        );
     }
 
     function withdrawProceeds() external {
@@ -240,6 +257,18 @@ contract NftMarketplace is ReentrancyGuard {
         returns (CompleteListing[] memory)
     {
         return s_completeListing;
+    }
+
+    function getCompleteListingByIndex(uint256 index)
+        external
+        view
+        returns (CompleteListing memory)
+    {
+        return s_completeListing[index];
+    }
+
+    function getCompleteListingLength() external view returns (uint256) {
+        return s_completeListing.length;
     }
 
     function getProceeds(address seller) external view returns (uint256) {

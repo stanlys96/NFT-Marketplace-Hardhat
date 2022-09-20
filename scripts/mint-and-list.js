@@ -4,11 +4,19 @@ const { moveBlocks } = require('../utils/move-blocks');
 const NFT_PRICE = ethers.utils.parseEther('0.1');
 
 async function mintAndList() {
-  const nftMarketplace = await ethers.getContract('NftMarketplace');
-  const basicNft = await ethers.getContract('BasicNft');
+  const [nftMarketplace, basicNft] = await Promise.all([
+    ethers.getContract('NftMarketplace'),
+    ethers.getContract('BasicNft'),
+  ]);
 
   const mintTx = await basicNft.mintNft();
   const mintTxReceipt = await mintTx.wait(1);
+
+  // const nftMarketplace = await ethers.getContract('NftMarketplace');
+  // const basicNft = await ethers.getContract('BasicNft');
+
+  // const mintTx = await basicNft.mintNft();
+  // const mintTxReceipt = await mintTx.wait(1);
   const tokenId = mintTxReceipt.events[0].args.tokenId.toString();
 
   console.log(`Token ID: ${tokenId} minted!`);
