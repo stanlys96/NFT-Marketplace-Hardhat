@@ -34,15 +34,6 @@ contract NftMarketplace is ReentrancyGuard {
         address seller;
     }
 
-    struct CompleteListing {
-        uint256 price;
-        address seller;
-        address nftAddress;
-        uint256 tokenId;
-    }
-
-    CompleteListing[] private s_completeListing;
-
     mapping(address => mapping(uint256 => Listing)) private s_listings;
     mapping(address => uint256) private s_proceeds;
 
@@ -121,9 +112,6 @@ contract NftMarketplace is ReentrancyGuard {
             priceTemp,
             msg.sender
         );
-        s_completeListing.push(
-            CompleteListing(priceTemp, msg.sender, nftAddressTemp, tokenIdTemp)
-        );
         emit ItemListed(
             msg.sender,
             nftAddressTemp,
@@ -140,7 +128,6 @@ contract NftMarketplace is ReentrancyGuard {
     {
         uint256 price = s_listings[nftAddress][tokenId].price;
         delete s_listings[nftAddress][tokenId];
-        removeCompleteListing(nftAddress, tokenId);
         emit ItemCanceled(msg.sender, nftAddress, tokenId, price);
     }
 
@@ -161,7 +148,6 @@ contract NftMarketplace is ReentrancyGuard {
         }
         s_proceeds[listedItem.seller] += msg.value;
         delete s_listings[nftAddress][tokenId];
-        removeCompleteListing(nftAddress, tokenId);
         IERC721(nftAddress).safeTransferFrom(
             listedItem.seller,
             msg.sender,
@@ -184,7 +170,6 @@ contract NftMarketplace is ReentrancyGuard {
             revert NftMarketplace__PriceMustBeAboveZero();
         }
         s_listings[nftAddress][tokenId].price = newPrice;
-        updateCompleteListing(nftAddress, tokenId, newPrice);
         emit ItemListed(
             msg.sender,
             nftAddress,
@@ -204,71 +189,12 @@ contract NftMarketplace is ReentrancyGuard {
         require(success, "Transfer failed!");
     }
 
-    function removeCompleteListing(address nftAddress, uint256 tokenId) public {
-        for (uint256 index = 0; index < s_completeListing.length; index++) {
-            CompleteListing memory listedCompleteListing = s_completeListing[
-                index
-            ];
-            if (
-                listedCompleteListing.nftAddress == nftAddress &&
-                listedCompleteListing.tokenId == tokenId
-            ) {
-                if (index >= s_completeListing.length) return;
-
-                for (uint i = index; i < s_completeListing.length - 1; i++) {
-                    s_completeListing[i] = s_completeListing[i + 1];
-                }
-                s_completeListing.pop();
-                break;
-            }
-        }
-    }
-
-    function updateCompleteListing(
-        address nftAddress,
-        uint256 tokenId,
-        uint256 newPrice
-    ) public {
-        for (uint256 index = 0; index < s_completeListing.length; index++) {
-            CompleteListing memory listedCompleteListing = s_completeListing[
-                index
-            ];
-            if (
-                listedCompleteListing.nftAddress == nftAddress &&
-                listedCompleteListing.tokenId == tokenId
-            ) {
-                s_completeListing[index].price = newPrice;
-                break;
-            }
-        }
-    }
-
     function getListing(address nftAddress, uint256 tokenId)
         external
         view
         returns (Listing memory)
     {
         return s_listings[nftAddress][tokenId];
-    }
-
-    function getCompleteListing()
-        external
-        view
-        returns (CompleteListing[] memory)
-    {
-        return s_completeListing;
-    }
-
-    function getCompleteListingByIndex(uint256 index)
-        external
-        view
-        returns (CompleteListing memory)
-    {
-        return s_completeListing[index];
-    }
-
-    function getCompleteListingLength() external view returns (uint256) {
-        return s_completeListing.length;
     }
 
     function getProceeds(address seller) external view returns (uint256) {
