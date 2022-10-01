@@ -17,6 +17,11 @@ module.exports = {
       url: process.env.RINKEBY_RPC_URL,
       accounts: [process.env.PRIVATE_KEY],
     },
+    goerli: {
+      chainId: 5,
+      url: process.env.GOERLI_RPC_URL,
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
   namedAccounts: {
     deployer: {
@@ -30,6 +35,7 @@ module.exports = {
   etherscan: {
     apiKey: {
       rinkeby: process.env.ETHERSCAN_API_KEY,
+      goerli: process.env.ETHERSCAN_API_KEY,
     },
   },
 };

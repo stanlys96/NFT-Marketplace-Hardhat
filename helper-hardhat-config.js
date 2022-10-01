@@ -2,9 +2,10 @@ const blockWaitConfirmations = 6;
 
 const developmentChains = ['hardhat', 'localhost'];
 
-const frontEndContractAddressesLocation = './constants/networkMapping.json';
+const frontEndContractAddressesLocation =
+  '../nft-marketplace/constants/networkMapping.json';
 
-const frontEndAbiLocation = './constants/';
+const frontEndAbiLocation = '../nft-marketplace/constants/';
 
 module.exports = {
   blockWaitConfirmations,
